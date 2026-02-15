@@ -10,6 +10,7 @@ export default function RootLayout() {
         animation: 'fade',
       }}
     >
+      <Stack.Screen name="onboarding" />
       <Stack.Screen name="index" />
       <Stack.Screen name="mood" />
       <Stack.Screen name="confirmation" />
