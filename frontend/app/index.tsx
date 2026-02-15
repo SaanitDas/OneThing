@@ -99,14 +99,16 @@ export default function Index() {
               <TouchableOpacity
                 onPress={() => router.push('/history')}
                 style={styles.iconButton}
+                activeOpacity={0.7}
               >
-                <MaterialIcons name="history" size={24} color={COLORS.text} />
+                <MaterialIcons name="history" size={26} color={COLORS.text} />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => router.push('/settings')}
-                style={styles.iconButton}
+                style={[styles.iconButton, styles.settingsButton]}
+                activeOpacity={0.7}
               >
-                <MaterialIcons name="settings" size={24} color={COLORS.text} />
+                <MaterialIcons name="settings" size={26} color={COLORS.text} />
               </TouchableOpacity>
             </View>
           </View>
