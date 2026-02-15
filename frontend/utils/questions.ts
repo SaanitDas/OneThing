@@ -1,0 +1,87 @@
+// Question pool for OneThing app
+export const QUESTIONS = [
+  "What are you avoiding right now?",
+  "What drained you recently?",
+  "What felt unnecessary today?",
+  "What gave you calm, even briefly?",
+  "What did you do today just for yourself?",
+  "What would you change about today?",
+  "What made you feel seen?",
+  "What are you grateful for in this moment?",
+  "What boundary did you set today?",
+  "What did you learn about yourself recently?",
+  "What's something you've been putting off?",
+  "What made you smile today?",
+  "What's weighing on your mind?",
+  "What felt easy today?",
+  "What felt hard today?",
+  "What do you need to let go of?",
+  "What are you proud of this week?",
+  "What conversation are you avoiding?",
+  "What brought you peace today?",
+  "What are you looking forward to?",
+  "What did you do that aligned with your values?",
+  "What felt authentic today?",
+  "What made you feel connected?",
+  "What made you feel alone?",
+  "What do you need right now?",
+  "What surprised you today?",
+  "What are you curious about?",
+  "What felt meaningful today?",
+  "What's one thing you want to remember from today?",
+  "What would you tell a friend who felt like you do?",
+  "What small win happened today?",
+  "What challenge did you face?",
+  "What are you worried about?",
+  "What did you notice about your body today?",
+  "What made you feel energized?",
+  "What made you feel tired?",
+  "What boundary was crossed today?",
+  "What did you say yes to?",
+  "What did you say no to?",
+  "What's one truth you're sitting with?",
+  "What felt right today?",
+  "What felt wrong today?",
+  "What are you trying to control?",
+  "What can you accept as it is?",
+  "What did you appreciate about someone else?",
+  "What did you appreciate about yourself?",
+  "What's one thing you wish you could tell someone?",
+  "What did you do that was brave?",
+  "What would make tomorrow better?",
+  "What are you resisting?",
+  "What pattern did you notice in yourself?",
+  "What felt balanced today?",
+  "What felt out of balance?",
+  "What made you feel creative?",
+  "What made you feel stuck?",
+  "What's one thing you're certain about?",
+  "What's one thing you're uncertain about?",
+  "What did you do that was kind?",
+  "What would you do differently next time?",
+  "What felt safe today?",
+  "What felt unsafe today?",
+  "What are you hopeful about?",
+  "What are you skeptical about?",
+  "What did you accomplish today?",
+  "What remains undone?",
+  "What made you feel present?",
+  "What distracted you today?",
+  "What's one thing you're carrying that isn't yours?",
+  "What felt complete today?",
+  "What feels incomplete?",
+  "What are you ready for?",
+];
+
+// Get question based on deterministic date formula
+export const getQuestionForDate = (date: Date): string => {
+  const epochStart = new Date(1970, 0, 1);
+  const daysSinceEpoch = Math.floor((date.getTime() - epochStart.getTime()) / (1000 * 60 * 60 * 24));
+  const questionIndex = daysSinceEpoch % QUESTIONS.length;
+  return QUESTIONS[questionIndex];
+};
+
+// Get today's question
+export const getTodayQuestion = (): string => {
+  return getQuestionForDate(new Date());
+};
