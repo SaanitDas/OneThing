@@ -8,6 +8,7 @@ import {
   Switch,
   Alert,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
