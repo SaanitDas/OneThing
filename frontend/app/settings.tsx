@@ -1,17 +1,128 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Switch,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { COLORS, SPACING, FONT_SIZES } from '../constants/theme';
 import { MaterialIcons } from '@expo/vector-icons';
+import {
+  getNotificationSettings,
+  saveNotificationSettings,
+  scheduleDailyNotification,
+  cancelAllNotifications,
+  requestNotificationPermissions,
+  type NotificationSettings,
+} from '../utils/notifications';
 
 export default function SettingsScreen() {
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
+    enabled: false,
+    hour: 9,
+    minute: 0,
+  });
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      const settings = await getNotificationSettings();
+      setNotificationSettings(settings);
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleNotifications = async (enabled: boolean) => {
+    try {
+      if (enabled) {
+        // Request permissions
+        const hasPermission = await requestNotificationPermissions();
+        if (!hasPermission) {
+          Alert.alert(
+            'Permission Required',
+            'Please enable notifications in your device settings to use this feature.'
+          );
+          return;
+        }
+
+        // Schedule notification
+        await scheduleDailyNotification(
+          notificationSettings.hour,
+          notificationSettings.minute
+        );
+      } else {
+        // Cancel notifications
+        await cancelAllNotifications();
+      }
+
+      const newSettings = { ...notificationSettings, enabled };
+      await saveNotificationSettings(newSettings);
+      setNotificationSettings(newSettings);
+    } catch (error) {
+      console.error('Error toggling notifications:', error);
+      Alert.alert('Error', 'Failed to update notification settings');
+    }
+  };
+
+  const handleTimeChange = async (event: any, selectedDate?: Date) => {
+    setShowTimePicker(false);
+
+    if (event.type === 'set' && selectedDate) {
+      const hour = selectedDate.getHours();
+      const minute = selectedDate.getMinutes();
+
+      try {
+        if (notificationSettings.enabled) {
+          await scheduleDailyNotification(hour, minute);
+        }
+
+        const newSettings = { ...notificationSettings, hour, minute };
+        await saveNotificationSettings(newSettings);
+        setNotificationSettings(newSettings);
+      } catch (error) {
+        console.error('Error updating time:', error);
+        Alert.alert('Error', 'Failed to update notification time');
+      }
+    }
+  };
+
+  const formatTime = (hour: number, minute: number): string => {
+    const period = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    const displayMinute = minute.toString().padStart(2, '0');
+    return `${displayHour}:${displayMinute} ${period}`;
+  };
+
+  const getTimeDate = (): Date => {
+    const date = new Date();
+    date.setHours(notificationSettings.hour);
+    date.setMinutes(notificationSettings.minute);
+    return date;
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size="large" color={COLORS.button} />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {/* Header */}
@@ -24,6 +135,70 @@ export default function SettingsScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Notifications Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Daily Reminder</Text>
+          
+          <View style={styles.settingRow}>
+            <View style={styles.settingInfo}>
+              <Text style={styles.settingLabel}>Enable Reminder</Text>
+              <Text style={styles.settingDescription}>
+                Get a gentle daily notification
+              </Text>
+            </View>
+            <Switch
+              value={notificationSettings.enabled}
+              onValueChange={handleToggleNotifications}
+              trackColor={{ false: COLORS.border, true: COLORS.calm }}
+              thumbColor={COLORS.background}
+            />
+          </View>
+
+          {notificationSettings.enabled && (
+            <TouchableOpacity
+              style={styles.settingRow}
+              onPress={() => setShowTimePicker(true)}
+            >
+              <View style={styles.settingInfo}>
+                <Text style={styles.settingLabel}>Reminder Time</Text>
+                <Text style={styles.settingDescription}>
+                  {formatTime(notificationSettings.hour, notificationSettings.minute)}
+                </Text>
+              </View>
+              <MaterialIcons name="chevron-right" size={24} color={COLORS.textLight} />
+            </TouchableOpacity>
+          )}
+
+          {showTimePicker && (
+            <DateTimePicker
+              value={getTimeDate()}
+              mode="time"
+              is24Hour={false}
+              onChange={handleTimeChange}
+            />
+          )}
+        </View>
+
+        {/* Monthly Reflection Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Monthly Reflection</Text>
+          
+          <TouchableOpacity
+            style={styles.premiumButton}
+            onPress={() => router.push('/monthly-reflection')}
+          >
+            <View style={styles.premiumButtonContent}>
+              <MaterialIcons name="auto-awesome" size={20} color={COLORS.calm} />
+              <Text style={styles.premiumButtonText}>View Monthly Reflection</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={24} color={COLORS.textLight} />
+          </TouchableOpacity>
+          
+          <Text style={styles.premiumDescription}>
+            AI-generated summary of your monthly reflections. Non-advisory, theme-based analysis.
+          </Text>
+        </View>
+
         {/* About Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>About OneThing</Text>
@@ -96,6 +271,58 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     fontWeight: '500',
     marginBottom: SPACING.md,
+  },
+  settingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: SPACING.sm,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: SPACING.md,
+    borderRadius: 8,
+    marginBottom: SPACING.sm,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  settingInfo: {
+    flex: 1,
+  },
+  settingLabel: {
+    fontSize: FONT_SIZES.medium,
+    color: COLORS.text,
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  settingDescription: {
+    fontSize: FONT_SIZES.small,
+    color: COLORS.textLight,
+  },
+  premiumButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: SPACING.md,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    marginBottom: SPACING.sm,
+    borderWidth: 1,
+    borderColor: COLORS.calm,
+  },
+  premiumButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+  },
+  premiumButtonText: {
+    fontSize: FONT_SIZES.medium,
+    color: COLORS.text,
+    fontWeight: '500',
+  },
+  premiumDescription: {
+    fontSize: FONT_SIZES.small,
+    color: COLORS.textLight,
+    lineHeight: 20,
+    marginTop: SPACING.xs,
   },
   aboutText: {
     fontSize: FONT_SIZES.medium,
