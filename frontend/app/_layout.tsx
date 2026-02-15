@@ -16,6 +16,7 @@ export default function RootLayout() {
       <Stack.Screen name="history" />
       <Stack.Screen name="entry/[date]" />
       <Stack.Screen name="settings" />
+      <Stack.Screen name="monthly-reflection" />
     </Stack>
   );
 }
