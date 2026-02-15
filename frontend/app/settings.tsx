@@ -50,32 +50,53 @@ export default function SettingsScreen() {
   const handleToggleNotifications = async (enabled: boolean) => {
     try {
       if (enabled) {
-        // Request permissions
+        // Request permissions first
         const hasPermission = await requestNotificationPermissions();
+        
         if (!hasPermission) {
+          // Permission denied - show helpful message
           Alert.alert(
-            'Permission Required',
-            'Please enable notifications in your device settings to use this feature.'
+            'Notification Permission Required',
+            'OneThing needs notification permission to send you gentle daily reminders.\n\nPlease enable notifications in your device settings:\n\nSettings → Apps → OneThing → Notifications',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Open Settings', onPress: () => {
+                // On Android, this would open app settings
+                console.log('Open app settings for notifications');
+              }}
+            ]
           );
           return;
         }
 
-        // Schedule notification
+        // Permission granted - schedule notification
         await scheduleDailyNotification(
           notificationSettings.hour,
           notificationSettings.minute
         );
+
+        // Show success message
+        Alert.alert(
+          'Reminder Enabled',
+          `You'll receive a gentle reminder daily at ${formatTime(notificationSettings.hour, notificationSettings.minute)}.`,
+          [{ text: 'OK' }]
+        );
       } else {
-        // Cancel notifications
+        // Disable - cancel all notifications
         await cancelAllNotifications();
       }
 
+      // Save settings
       const newSettings = { ...notificationSettings, enabled };
       await saveNotificationSettings(newSettings);
       setNotificationSettings(newSettings);
     } catch (error) {
       console.error('Error toggling notifications:', error);
-      Alert.alert('Error', 'Failed to update notification settings');
+      Alert.alert(
+        'Error',
+        'Failed to update notification settings. Please try again.',
+        [{ text: 'OK' }]
+      );
     }
   };
 
