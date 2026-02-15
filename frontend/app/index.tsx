@@ -199,6 +199,13 @@ const styles = StyleSheet.create({
   iconButton: {
     padding: SPACING.xs,
   },
+  settingsButton: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    padding: SPACING.xs + 2,
+  },
   date: {
     fontSize: FONT_SIZES.medium,
     color: COLORS.textLight,
