@@ -10,11 +10,11 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useNavigation } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
 import { getTodayQuestion } from '../utils/questions';
-import { hasEntryForToday, getTodayEntry } from '../utils/storage';
+import { hasEntryForToday, getTodayEntry, hasSeenOnboarding } from '../utils/storage';
 import { COLORS, SPACING, FONT_SIZES } from '../constants/theme';
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -23,10 +23,25 @@ export default function Index() {
   const [answer, setAnswer] = useState<string>('');
   const [hasAnswered, setHasAnswered] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
+  const navigation = useNavigation();
 
   useEffect(() => {
-    loadTodayData();
+    checkOnboarding();
   }, []);
+
+  const checkOnboarding = async () => {
+    try {
+      const seen = await hasSeenOnboarding();
+      if (!seen) {
+        router.replace('/onboarding');
+        return;
+      }
+      loadTodayData();
+    } catch (error) {
+      console.error('Error checking onboarding:', error);
+      loadTodayData();
+    }
+  };
 
   const loadTodayData = async () => {
     try {

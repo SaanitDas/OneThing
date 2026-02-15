@@ -11,6 +11,7 @@ export interface Entry {
 }
 
 const STORAGE_KEY = '@onething_entries';
+const ONBOARDING_KEY = '@onething_onboarding';
 
 // Get all entries from storage
 export const getAllEntries = async (): Promise<Entry[]> => {
@@ -63,4 +64,24 @@ export const hasEntryForToday = async (): Promise<boolean> => {
 export const getTodayEntry = async (): Promise<Entry | null> => {
   const today = format(new Date(), 'yyyy-MM-dd');
   return await getEntryForDate(today);
+};
+
+// Onboarding flag functions
+export const hasSeenOnboarding = async (): Promise<boolean> => {
+  try {
+    const value = await AsyncStorage.getItem(ONBOARDING_KEY);
+    return value === 'true';
+  } catch (e) {
+    console.error('Error reading onboarding flag:', e);
+    return false;
+  }
+};
+
+export const setOnboardingSeen = async (): Promise<void> => {
+  try {
+    await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
+  } catch (e) {
+    console.error('Error setting onboarding flag:', e);
+    throw e;
+  }
 };
