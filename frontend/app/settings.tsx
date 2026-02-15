@@ -49,6 +49,16 @@ export default function SettingsScreen() {
 
   const handleToggleNotifications = async (enabled: boolean) => {
     try {
+      // Check if running on web - notifications not supported in web preview
+      if (Platform.OS === 'web') {
+        Alert.alert(
+          'Not Available in Web',
+          'Daily reminders are only available in the native Android/iOS app. Please build the APK to test this feature on your device.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
       if (enabled) {
         // Request permissions first
         const hasPermission = await requestNotificationPermissions();
@@ -60,9 +70,8 @@ export default function SettingsScreen() {
             'OneThing needs notification permission to send you gentle daily reminders.\n\nPlease enable notifications in your device settings:\n\nSettings → Apps → OneThing → Notifications',
             [
               { text: 'Cancel', style: 'cancel' },
-              { text: 'Open Settings', onPress: () => {
-                // On Android, this would open app settings
-                console.log('Open app settings for notifications');
+              { text: 'OK', onPress: () => {
+                console.log('User will enable notifications manually');
               }}
             ]
           );
@@ -94,7 +103,9 @@ export default function SettingsScreen() {
       console.error('Error toggling notifications:', error);
       Alert.alert(
         'Error',
-        'Failed to update notification settings. Please try again.',
+        Platform.OS === 'web' 
+          ? 'Notifications are not supported in web preview. Build the APK to test on your device.'
+          : 'Failed to update notification settings. Please try again.',
         [{ text: 'OK' }]
       );
     }
