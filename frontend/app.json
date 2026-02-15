@@ -55,8 +55,8 @@
       "typedRoutes": true
     },
     "extra": {
-      "eas": {
-        "projectId": "onething-app"
+      "router": {
+        "origin": false
       }
     }
   }
