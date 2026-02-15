@@ -85,7 +85,9 @@ export const scheduleDailyNotification = async (
   minute: number
 ): Promise<void> => {
   try {
-    // Cancel existing notifications
+    console.log(`Scheduling daily notification for ${hour}:${minute}`);
+    
+    // Cancel existing notifications first
     await Notifications.cancelAllScheduledNotificationsAsync();
 
     // Gentle notification messages
@@ -97,19 +99,22 @@ export const scheduleDailyNotification = async (
 
     const randomMessage = messages[Math.floor(Math.random() * messages.length)];
 
-    // Schedule notification
-    await Notifications.scheduleNotificationAsync({
+    // Schedule daily notification with proper trigger
+    const notificationId = await Notifications.scheduleNotificationAsync({
       content: {
         title: 'OneThing',
         body: randomMessage,
         sound: false,
+        priority: Notifications.AndroidNotificationPriority.DEFAULT,
       },
       trigger: {
-        hour,
-        minute,
+        hour: hour,
+        minute: minute,
         repeats: true,
       },
     });
+
+    console.log('Notification scheduled successfully with ID:', notificationId);
   } catch (error) {
     console.error('Error scheduling notification:', error);
     throw error;
