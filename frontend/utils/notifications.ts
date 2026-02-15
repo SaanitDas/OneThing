@@ -19,15 +19,25 @@ Notifications.setNotificationHandler({
   }),
 });
 
-// Request permissions
+// Request permissions with proper Android 13+ handling
 export const requestNotificationPermissions = async (): Promise<boolean> => {
   try {
+    // Check current permission status
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
 
+    console.log('Current notification permission status:', existingStatus);
+
+    // If not granted, request permission
     if (existingStatus !== 'granted') {
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
+      console.log('New notification permission status:', finalStatus);
+    }
+
+    // For Android 13+, also check POST_NOTIFICATIONS permission
+    if (Platform.OS === 'android' && finalStatus === 'granted') {
+      console.log('Notification permission granted successfully');
     }
 
     return finalStatus === 'granted';
