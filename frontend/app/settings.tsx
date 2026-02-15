@@ -61,29 +61,34 @@ export default function SettingsScreen() {
       }
 
       if (enabled) {
+        console.log('Enabling notifications...');
+        
         // Request permissions first
         const hasPermission = await requestNotificationPermissions();
+        console.log('Permission status:', hasPermission);
         
         if (!hasPermission) {
           // Permission denied - show helpful message
           Alert.alert(
             'Notification Permission Required',
             'OneThing needs notification permission to send you gentle daily reminders.\n\nPlease enable notifications in your device settings:\n\nSettings → Apps → OneThing → Notifications',
-            [
-              { text: 'Cancel', style: 'cancel' },
-              { text: 'OK', onPress: () => {
-                console.log('User will enable notifications manually');
-              }}
-            ]
+            [{ text: 'OK' }]
           );
           return;
         }
 
         // Permission granted - schedule notification
+        console.log('Scheduling notification...');
         await scheduleDailyNotification(
           notificationSettings.hour,
           notificationSettings.minute
         );
+        console.log('Notification scheduled successfully');
+
+        // Save settings
+        const newSettings = { ...notificationSettings, enabled: true };
+        await saveNotificationSettings(newSettings);
+        setNotificationSettings(newSettings);
 
         // Show success message
         Alert.alert(
@@ -93,20 +98,26 @@ export default function SettingsScreen() {
         );
       } else {
         // Disable - cancel all notifications
+        console.log('Disabling notifications...');
         await cancelAllNotifications();
+        
+        // Save settings
+        const newSettings = { ...notificationSettings, enabled: false };
+        await saveNotificationSettings(newSettings);
+        setNotificationSettings(newSettings);
+        console.log('Notifications disabled successfully');
       }
-
-      // Save settings
-      const newSettings = { ...notificationSettings, enabled };
-      await saveNotificationSettings(newSettings);
-      setNotificationSettings(newSettings);
     } catch (error) {
       console.error('Error toggling notifications:', error);
+      
+      // Make sure toggle reverts to previous state
+      await loadSettings();
+      
       Alert.alert(
         'Error',
         Platform.OS === 'web' 
           ? 'Notifications are not supported in web preview. Build the APK to test on your device.'
-          : 'Failed to update notification settings. Please try again.',
+          : `Failed to update notification settings: ${error.message || 'Unknown error'}. Please try again.`,
         [{ text: 'OK' }]
       );
     }
