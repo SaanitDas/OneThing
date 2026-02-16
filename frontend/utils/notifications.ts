@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const NOTIFICATION_SETTINGS_KEY = '@onething_notification_settings';
+const CHANNEL_ID = 'daily-reminder';
 
 export interface NotificationSettings {
   enabled: boolean;
@@ -18,6 +19,26 @@ Notifications.setNotificationHandler({
     shouldSetBadge: false,
   }),
 });
+
+// Setup Android notification channel (call once at app startup)
+export const setupNotificationChannel = async (): Promise<void> => {
+  if (Platform.OS === 'android') {
+    try {
+      await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
+        name: 'Daily Reminder',
+        importance: Notifications.AndroidImportance.DEFAULT,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#8B9F8C',
+        sound: null,
+        enableVibrate: false,
+        showBadge: false,
+      });
+      console.log('Notification channel created:', CHANNEL_ID);
+    } catch (error) {
+      console.error('Error creating notification channel:', error);
+    }
+  }
+};
 
 // Request permissions with proper Android 13+ handling
 export const requestNotificationPermissions = async (): Promise<boolean> => {
