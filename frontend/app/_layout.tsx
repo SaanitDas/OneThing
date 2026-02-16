@@ -1,7 +1,14 @@
 import { Stack } from 'expo-router';
+import { useEffect } from 'react';
 import { COLORS } from '../constants/theme';
+import { setupNotificationChannel } from '../utils/notifications';
 
 export default function RootLayout() {
+  // Setup notification channel on app startup (Android)
+  useEffect(() => {
+    setupNotificationChannel();
+  }, []);
+
   return (
     <Stack
       screenOptions={{
