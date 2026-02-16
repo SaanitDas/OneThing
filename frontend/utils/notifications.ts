@@ -100,7 +100,7 @@ export const saveNotificationSettings = async (
   }
 };
 
-// Schedule daily notification
+// Schedule daily notification with proper trigger type
 export const scheduleDailyNotification = async (
   hour: number,
   minute: number
@@ -108,8 +108,9 @@ export const scheduleDailyNotification = async (
   try {
     console.log(`Scheduling daily notification for ${hour}:${minute}`);
     
-    // Cancel existing notifications first
+    // Cancel all existing notifications first
     await Notifications.cancelAllScheduledNotificationsAsync();
+    console.log('Cancelled all existing notifications');
 
     // Gentle notification messages
     const messages = [
@@ -120,7 +121,7 @@ export const scheduleDailyNotification = async (
 
     const randomMessage = messages[Math.floor(Math.random() * messages.length)];
 
-    // Schedule daily notification with proper trigger
+    // Schedule daily notification with PROPER trigger format (type: 'daily')
     const notificationId = await Notifications.scheduleNotificationAsync({
       content: {
         title: 'OneThing',
@@ -129,13 +130,15 @@ export const scheduleDailyNotification = async (
         priority: Notifications.AndroidNotificationPriority.DEFAULT,
       },
       trigger: {
+        type: 'daily',
         hour: hour,
         minute: minute,
-        repeats: true,
+        channelId: CHANNEL_ID, // Required for Android
       },
     });
 
-    console.log('Notification scheduled successfully with ID:', notificationId);
+    console.log('Daily notification scheduled successfully with ID:', notificationId);
+    console.log(`Will trigger daily at ${hour}:${String(minute).padStart(2, '0')}`);
   } catch (error) {
     console.error('Error scheduling notification:', error);
     throw error;
