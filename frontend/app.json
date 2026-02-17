@@ -57,7 +57,8 @@
     "extra": {
       "router": {
         "origin": false
-      }
+      },
+      "EXPO_PUBLIC_BACKEND_URL": "https://onething.preview.emergentagent.com"
     }
   }
 }
