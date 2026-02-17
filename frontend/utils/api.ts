@@ -1,8 +1,11 @@
 import Constants from 'expo-constants';
 
 const BACKEND_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || 
-  process.env.EXPO_PUBLIC_BACKEND_URL || 
-  'https://onething.preview.emergentagent.com';
+  process.env.EXPO_PUBLIC_BACKEND_URL;
+
+if (!BACKEND_URL) {
+  throw new Error('EXPO_PUBLIC_BACKEND_URL environment variable is required');
+}
 
 export interface MonthlyReflectionRequest {
   entries: Array<{
