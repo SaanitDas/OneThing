@@ -321,6 +321,56 @@ const styles = StyleSheet.create({
     color: COLORS.textLight,
     marginTop: 4,
   },
+  lockedContainer: {
+    backgroundColor: '#FFFFFF',
+    padding: SPACING.xl,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginBottom: SPACING.lg,
+    alignItems: 'center',
+  },
+  lockedIconContainer: {
+    marginBottom: SPACING.md,
+  },
+  lockedTitle: {
+    fontSize: FONT_SIZES.medium,
+    color: COLORS.text,
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: SPACING.lg,
+  },
+  progressContainer: {
+    width: '100%',
+    marginBottom: SPACING.md,
+  },
+  progressItem: {
+    marginBottom: SPACING.md,
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: '#E0DED8',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: SPACING.xs,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: COLORS.calm,
+    borderRadius: 4,
+  },
+  progressText: {
+    fontSize: FONT_SIZES.small,
+    color: COLORS.textLight,
+    textAlign: 'center',
+  },
+  lockedSubtext: {
+    fontSize: FONT_SIZES.small,
+    color: COLORS.textLight,
+    textAlign: 'center',
+    fontStyle: 'italic',
+    marginTop: SPACING.sm,
+  },
   infoBox: {
     flexDirection: 'row',
     backgroundColor: '#E8F5E9',
