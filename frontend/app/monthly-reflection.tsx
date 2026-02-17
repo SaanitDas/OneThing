@@ -16,11 +16,17 @@ import { generateMonthlyReflection } from '../utils/api';
 import { COLORS, SPACING, FONT_SIZES } from '../constants/theme';
 import { MaterialIcons } from '@expo/vector-icons';
 
+// Unlock conditions
+const MIN_ENTRIES = 3;
+const MIN_CHARACTERS = 300;
+
 export default function MonthlyReflectionScreen() {
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const [loading, setLoading] = useState(false);
   const [reflection, setReflection] = useState<string | null>(null);
   const [entriesCount, setEntriesCount] = useState(0);
+  const [totalCharacters, setTotalCharacters] = useState(0);
+  const [isUnlocked, setIsUnlocked] = useState(false);
 
   useEffect(() => {
     loadMonthEntries();
@@ -37,7 +43,12 @@ export default function MonthlyReflectionScreen() {
         return entryDate >= monthStart && entryDate <= monthEnd;
       });
       
+      // Calculate total characters across all answers
+      const totalChars = monthEntries.reduce((sum, entry) => sum + (entry.answer?.length || 0), 0);
+      
       setEntriesCount(monthEntries.length);
+      setTotalCharacters(totalChars);
+      setIsUnlocked(monthEntries.length >= MIN_ENTRIES && totalChars >= MIN_CHARACTERS);
       setReflection(null); // Reset reflection when month changes
     } catch (error) {
       console.error('Error loading month entries:', error);
@@ -45,9 +56,8 @@ export default function MonthlyReflectionScreen() {
   };
 
   const handleGenerateReflection = async () => {
-    if (entriesCount === 0) {
-      Alert.alert('No Entries', 'You haven\'t written any reflections this month yet.');
-      return;
+    if (!isUnlocked) {
+      return; // Should not be callable when locked
     }
 
     try {
@@ -76,7 +86,8 @@ export default function MonthlyReflectionScreen() {
       console.error('Error generating reflection:', error);
       Alert.alert(
         'Error',
-        'Failed to generate monthly reflection. Please try again.'
+        'Failed to generate monthly reflection. Please check your internet connection and try again.',
+        [{ text: 'OK' }]
       );
     } finally {
       setLoading(false);
@@ -146,54 +157,105 @@ export default function MonthlyReflectionScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Info Box */}
-        <View style={styles.infoBox}>
-          <MaterialIcons name="info-outline" size={20} color={COLORS.calm} />
-          <Text style={styles.infoText}>
-            This AI-generated summary reflects recurring themes in your reflections.
-            It does not provide advice or recommendations.
-          </Text>
-        </View>
-
-        {/* Generate Button */}
-        {!reflection && (
-          <TouchableOpacity
-            style={[
-              styles.generateButton,
-              (loading || entriesCount === 0) && styles.generateButtonDisabled,
-            ]}
-            onPress={handleGenerateReflection}
-            disabled={loading || entriesCount === 0}
-          >
-            {loading ? (
-              <ActivityIndicator size="small" color={COLORS.background} />
-            ) : (
-              <>
-                <MaterialIcons name="auto-awesome" size={20} color={COLORS.background} />
-                <Text style={styles.generateButtonText}>Generate Reflection</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        )}
-
-        {/* Reflection Summary */}
-        {reflection && (
-          <View style={styles.reflectionBox}>
-            <View style={styles.reflectionHeader}>
-              <MaterialIcons name="auto-awesome" size={20} color={COLORS.calm} />
-              <Text style={styles.reflectionTitle}>Your Monthly Summary</Text>
+        {/* Locked State or Generate Button */}
+        {!isUnlocked ? (
+          <View style={styles.lockedContainer}>
+            <View style={styles.lockedIconContainer}>
+              <MaterialIcons name="lock-outline" size={48} color={COLORS.textLight} />
             </View>
-            <Text style={styles.reflectionText}>{reflection}</Text>
             
-            <TouchableOpacity
-              style={styles.regenerateButton}
-              onPress={handleGenerateReflection}
-              disabled={loading}
-            >
-              <MaterialIcons name="refresh" size={18} color={COLORS.text} />
-              <Text style={styles.regenerateButtonText}>Generate Again</Text>
-            </TouchableOpacity>
+            <Text style={styles.lockedTitle}>
+              Your monthly reflection will unlock once you've added a few more entries.
+            </Text>
+            
+            {/* Progress Indicators */}
+            <View style={styles.progressContainer}>
+              {/* Entry Count Progress */}
+              <View style={styles.progressItem}>
+                <View style={styles.progressBar}>
+                  <View 
+                    style={[
+                      styles.progressFill, 
+                      { width: `${Math.min((entriesCount / MIN_ENTRIES) * 100, 100)}%` }
+                    ]} 
+                  />
+                </View>
+                <Text style={styles.progressText}>
+                  {Math.min(entriesCount, MIN_ENTRIES)} of {MIN_ENTRIES} reflections added
+                </Text>
+              </View>
+
+              {/* Character Count Progress */}
+              {entriesCount >= MIN_ENTRIES && totalCharacters < MIN_CHARACTERS && (
+                <View style={styles.progressItem}>
+                  <View style={styles.progressBar}>
+                    <View 
+                      style={[
+                        styles.progressFill, 
+                        { width: `${Math.min((totalCharacters / MIN_CHARACTERS) * 100, 100)}%` }
+                      ]} 
+                    />
+                  </View>
+                  <Text style={styles.progressText}>
+                    {totalCharacters} of {MIN_CHARACTERS} characters written
+                  </Text>
+                </View>
+              )}
+            </View>
+            
+            <Text style={styles.lockedSubtext}>
+              Keep reflecting — patterns emerge over time.
+            </Text>
           </View>
+        ) : (
+          <>
+            {/* Info Box */}
+            <View style={styles.infoBox}>
+              <MaterialIcons name="info-outline" size={20} color={COLORS.calm} />
+              <Text style={styles.infoText}>
+                This AI-generated summary reflects recurring themes in your reflections.
+                It does not provide advice or recommendations.
+              </Text>
+            </View>
+
+            {/* Generate Button */}
+            {!reflection && (
+              <TouchableOpacity
+                style={[styles.generateButton, loading && styles.generateButtonDisabled]}
+                onPress={handleGenerateReflection}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator size="small" color={COLORS.background} />
+                ) : (
+                  <>
+                    <MaterialIcons name="auto-awesome" size={20} color={COLORS.background} />
+                    <Text style={styles.generateButtonText}>Generate Reflection</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            )}
+
+            {/* Reflection Summary */}
+            {reflection && (
+              <View style={styles.reflectionBox}>
+                <View style={styles.reflectionHeader}>
+                  <MaterialIcons name="auto-awesome" size={20} color={COLORS.calm} />
+                  <Text style={styles.reflectionTitle}>Your Monthly Summary</Text>
+                </View>
+                <Text style={styles.reflectionText}>{reflection}</Text>
+                
+                <TouchableOpacity
+                  style={styles.regenerateButton}
+                  onPress={handleGenerateReflection}
+                  disabled={loading}
+                >
+                  <MaterialIcons name="refresh" size={18} color={COLORS.text} />
+                  <Text style={styles.regenerateButtonText}>Generate Again</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </>
         )}
 
         {/* Disclaimer */}
