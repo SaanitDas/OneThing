@@ -8,25 +8,21 @@ if (!BACKEND_URL) {
 }
 
 export interface MonthlyReflectionRequest {
-  entries: Array<{
-    date: string;
-    question: string;
-    answer: string;
-    mood: string;
-  }>;
-  month: string;
+  entries: string[];
 }
 
 export interface MonthlyReflectionResponse {
   summary: string;
-  month: string;
 }
 
 export const generateMonthlyReflection = async (
   request: MonthlyReflectionRequest
 ): Promise<MonthlyReflectionResponse> => {
   try {
-    const response = await fetch(`${BACKEND_URL}/api/monthly-reflection`, {
+    console.log('Calling Firebase Cloud Functions endpoint:', `${BACKEND_URL}/generateMonthlyReflection`);
+    console.log('Request entries count:', request.entries.length);
+    
+    const response = await fetch(`${BACKEND_URL}/generateMonthlyReflection`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -35,11 +31,14 @@ export const generateMonthlyReflection = async (
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Failed to generate reflection');
+      const errorText = await response.text();
+      console.error('API Error Response:', errorText);
+      throw new Error(`Failed to generate reflection: ${response.status} ${response.statusText}`);
     }
 
-    return await response.json();
+    const result = await response.json();
+    console.log('Monthly reflection generated successfully');
+    return result;
   } catch (error) {
     console.error('Error generating monthly reflection:', error);
     throw error;
