@@ -80,6 +80,17 @@ export default function MonthlyReflectionScreen() {
       return; // Should not be callable when locked
     }
 
+    // Check if already generated for this month
+    const monthKey = getMonthKey(selectedMonth);
+    if (isGenerated) {
+      Alert.alert(
+        'Already Generated',
+        'You have already generated a reflection for this month. Each month can only be reflected on once to preserve the authenticity of your thoughts.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
     try {
       setLoading(true);
       const allEntries = await getAllEntries();
@@ -91,7 +102,7 @@ export default function MonthlyReflectionScreen() {
         return entryDate >= monthStart && entryDate <= monthEnd;
       });
 
-      // Format entries as strings for Firebase Cloud Functions
+      // Format entries as strings for Gemini API
       const formattedEntries = monthEntries.map((entry) => 
         `Date: ${format(parseISO(entry.date), 'MMMM d, yyyy')}\nQuestion: ${entry.question}\nAnswer: ${entry.answer}\nMood: ${entry.mood}`
       );
@@ -99,12 +110,17 @@ export default function MonthlyReflectionScreen() {
       console.log('Generating monthly reflection for', format(selectedMonth, 'MMMM yyyy'));
       console.log('Total entries:', formattedEntries.length);
 
+      // Call Gemini API directly
       const response = await generateMonthlyReflection({
         entries: formattedEntries,
       });
 
+      // Cache the reflection
+      await saveCachedMonthlyReflection(monthKey, response.summary);
+
       setReflection(response.summary);
-      console.log('Monthly reflection generated successfully');
+      setIsGenerated(true);
+      console.log('Monthly reflection generated and cached successfully');
     } catch (error) {
       console.error('Error generating reflection:', error);
       Alert.alert(
