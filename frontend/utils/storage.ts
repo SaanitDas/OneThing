@@ -12,6 +12,7 @@ export interface Entry {
 
 const STORAGE_KEY = '@onething_entries';
 const ONBOARDING_KEY = '@onething_onboarding';
+const MONTHLY_REFLECTION_KEY = '@onething_monthly_reflections';
 
 // Get all entries from storage
 export const getAllEntries = async (): Promise<Entry[]> => {
@@ -82,6 +83,68 @@ export const setOnboardingSeen = async (): Promise<void> => {
     await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
   } catch (e) {
     console.error('Error setting onboarding flag:', e);
+    throw e;
+  }
+};
+
+// Monthly Reflection Cache functions
+export interface CachedMonthlyReflection {
+  monthKey: string; // Format: YYYY-MM
+  summary: string;
+  generatedAt: string; // ISO timestamp
+}
+
+/**
+ * Get month key in format YYYY-MM
+ */
+export const getMonthKey = (date: Date): string => {
+  return format(date, 'yyyy-MM');
+};
+
+/**
+ * Check if monthly reflection exists for a given month
+ */
+export const hasMonthlyReflection = async (monthKey: string): Promise<boolean> => {
+  try {
+    const jsonValue = await AsyncStorage.getItem(`${MONTHLY_REFLECTION_KEY}_${monthKey}`);
+    return jsonValue !== null;
+  } catch (e) {
+    console.error('Error checking monthly reflection:', e);
+    return false;
+  }
+};
+
+/**
+ * Get cached monthly reflection for a specific month
+ */
+export const getCachedMonthlyReflection = async (monthKey: string): Promise<CachedMonthlyReflection | null> => {
+  try {
+    const jsonValue = await AsyncStorage.getItem(`${MONTHLY_REFLECTION_KEY}_${monthKey}`);
+    return jsonValue != null ? JSON.parse(jsonValue) : null;
+  } catch (e) {
+    console.error('Error reading cached monthly reflection:', e);
+    return null;
+  }
+};
+
+/**
+ * Save monthly reflection to cache
+ */
+export const saveCachedMonthlyReflection = async (
+  monthKey: string,
+  summary: string
+): Promise<void> => {
+  try {
+    const cached: CachedMonthlyReflection = {
+      monthKey,
+      summary,
+      generatedAt: new Date().toISOString(),
+    };
+    const jsonValue = JSON.stringify(cached);
+    await AsyncStorage.setItem(`${MONTHLY_REFLECTION_KEY}_${monthKey}`, jsonValue);
+    console.log(`Monthly reflection cached for ${monthKey}`);
+  } catch (e) {
+    console.error('Error saving monthly reflection cache:', e);
     throw e;
   }
 };
