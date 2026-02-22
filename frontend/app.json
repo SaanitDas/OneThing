@@ -58,7 +58,8 @@
       "router": {
         "origin": false
       },
-      "EXPO_PUBLIC_BACKEND_URL": "https://onething.preview.emergentagent.com"
+      "EXPO_PUBLIC_BACKEND_URL": "https://onething.preview.emergentagent.com",
+      "EXPO_PUBLIC_GEMINI_API_KEY": "AIzaSyCswNaMxDgklN9y7KxKAs_04WrY5aoZWdY"
     }
   }
 }
