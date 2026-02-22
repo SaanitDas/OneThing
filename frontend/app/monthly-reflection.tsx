@@ -71,17 +71,20 @@ export default function MonthlyReflectionScreen() {
         return entryDate >= monthStart && entryDate <= monthEnd;
       });
 
+      // Format entries as strings for Firebase Cloud Functions
+      const formattedEntries = monthEntries.map((entry) => 
+        `Date: ${format(parseISO(entry.date), 'MMMM d, yyyy')}\nQuestion: ${entry.question}\nAnswer: ${entry.answer}\nMood: ${entry.mood}`
+      );
+
+      console.log('Generating monthly reflection for', format(selectedMonth, 'MMMM yyyy'));
+      console.log('Total entries:', formattedEntries.length);
+
       const response = await generateMonthlyReflection({
-        entries: monthEntries.map((entry) => ({
-          date: entry.date,
-          question: entry.question,
-          answer: entry.answer,
-          mood: entry.mood,
-        })),
-        month: format(selectedMonth, 'MMMM yyyy'),
+        entries: formattedEntries,
       });
 
       setReflection(response.summary);
+      console.log('Monthly reflection generated successfully');
     } catch (error) {
       console.error('Error generating reflection:', error);
       Alert.alert(
