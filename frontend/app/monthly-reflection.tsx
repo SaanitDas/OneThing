@@ -11,7 +11,14 @@ import {
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
-import { getAllEntries, type Entry } from '../utils/storage';
+import {
+  getAllEntries,
+  type Entry,
+  getMonthKey,
+  getCachedMonthlyReflection,
+  saveCachedMonthlyReflection,
+  hasMonthlyReflection,
+} from '../utils/storage';
 import { generateMonthlyReflection } from '../utils/api';
 import { COLORS, SPACING, FONT_SIZES } from '../constants/theme';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -27,6 +34,7 @@ export default function MonthlyReflectionScreen() {
   const [entriesCount, setEntriesCount] = useState(0);
   const [totalCharacters, setTotalCharacters] = useState(0);
   const [isUnlocked, setIsUnlocked] = useState(false);
+  const [isGenerated, setIsGenerated] = useState(false);
 
   useEffect(() => {
     loadMonthEntries();
@@ -49,7 +57,19 @@ export default function MonthlyReflectionScreen() {
       setEntriesCount(monthEntries.length);
       setTotalCharacters(totalChars);
       setIsUnlocked(monthEntries.length >= MIN_ENTRIES && totalChars >= MIN_CHARACTERS);
-      setReflection(null); // Reset reflection when month changes
+      
+      // Check if reflection is already cached for this month
+      const monthKey = getMonthKey(selectedMonth);
+      const cached = await getCachedMonthlyReflection(monthKey);
+      
+      if (cached) {
+        console.log(`Loading cached reflection for ${monthKey}`);
+        setReflection(cached.summary);
+        setIsGenerated(true);
+      } else {
+        setReflection(null);
+        setIsGenerated(false);
+      }
     } catch (error) {
       console.error('Error loading month entries:', error);
     }
