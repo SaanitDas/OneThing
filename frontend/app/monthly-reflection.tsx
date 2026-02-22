@@ -258,7 +258,7 @@ export default function MonthlyReflectionScreen() {
             </View>
 
             {/* Generate Button */}
-            {!reflection && (
+            {!reflection && !isGenerated && (
               <TouchableOpacity
                 style={[styles.generateButton, loading && styles.generateButtonDisabled]}
                 onPress={handleGenerateReflection}
@@ -284,14 +284,13 @@ export default function MonthlyReflectionScreen() {
                 </View>
                 <Text style={styles.reflectionText}>{reflection}</Text>
                 
-                <TouchableOpacity
-                  style={styles.regenerateButton}
-                  onPress={handleGenerateReflection}
-                  disabled={loading}
-                >
-                  <MaterialIcons name="refresh" size={18} color={COLORS.text} />
-                  <Text style={styles.regenerateButtonText}>Generate Again</Text>
-                </TouchableOpacity>
+                {/* Show note that this can only be generated once */}
+                <View style={styles.onceOnlyNote}>
+                  <MaterialIcons name="info-outline" size={16} color={COLORS.textLight} />
+                  <Text style={styles.onceOnlyText}>
+                    This reflection was generated once for {format(selectedMonth, 'MMMM yyyy')} and preserved to maintain authenticity.
+                  </Text>
+                </View>
               </View>
             )}
           </>
