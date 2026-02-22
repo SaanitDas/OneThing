@@ -466,6 +466,21 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginBottom: SPACING.md,
   },
+  onceOnlyNote: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: SPACING.sm,
+    backgroundColor: '#F5F3F0',
+    borderRadius: 6,
+    gap: SPACING.xs,
+    marginTop: SPACING.sm,
+  },
+  onceOnlyText: {
+    flex: 1,
+    fontSize: FONT_SIZES.small,
+    color: COLORS.textLight,
+    lineHeight: 18,
+  },
   regenerateButton: {
     flexDirection: 'row',
     alignItems: 'center',
